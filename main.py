@@ -78,7 +78,7 @@ class NavBarFrame(ctk.CTkFrame):
                                     font=self.btnFont,
                                     command=self.invoice_btn_callback)
 
-        self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,0))
+        self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,2))
 
         self.transactionBtn = ctk.CTkButton(self, text="Transactions", 
                                     width=self.btnWidth, 
@@ -92,7 +92,7 @@ class NavBarFrame(ctk.CTkFrame):
                                     font=self.btnFont,
                                     command=self.transaction_btn_callback)
 
-        self.transactionBtn.grid(row=5, column=0, padx=(30,10), pady=(0,10))
+        self.transactionBtn.grid(row=5, column=0, padx=(30,10), pady=(2,10))
 
         self.accountingLabel = ctk.CTkLabel(self, text="Accounting", text_color="#fff", font=self.labelFont)
         self.accountingLabel.grid(row=6, column=0, padx=10, sticky='w')
@@ -170,45 +170,29 @@ class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         
-        self.radiobuttons = []
-        self.values = ['1','2','3']
-        self.title = 'Dashboard Frame'
-
-        self.variable = ctk.StringVar(value="")
-
-        self.title = ctk.CTkLabel(self, text=self.title, fg_color="gray30", corner_radius=6)
-        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-
-        for i, value in enumerate(self.values):
-            radiobutton = ctk.CTkRadioButton(self, text=value, value=value, variable=self.variable)
-            radiobutton.grid(row=i + 1, column=0, padx=10, pady=(10, 0), sticky="ew")
-            self.radiobuttons.append(radiobutton)
+        self.label = ctk.CTkLabel(self, text='Dashboard')
+        self.label.grid(row=0, column=0, padx=20, pady=20)
 
 class InvoiceFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.radiobuttons = []
-        self.values = ['4','5','6']
-        self.title = 'Invoice Frame'
-
-        self.variable = ctk.StringVar(value="")
-
-        self.title = ctk.CTkLabel(self, text=self.title, fg_color="gray30", corner_radius=6)
-        self.title.grid(row=0, column=0, padx=10, pady=(10, 0), sticky="ew")
-
-        for i, value in enumerate(self.values):
-            radiobutton = ctk.CTkRadioButton(self, text=value, value=value, variable=self.variable)
-            radiobutton.grid(row=i + 1, column=0, padx=10, pady=(10, 0), sticky="ew")
-            self.radiobuttons.append(radiobutton)
+        self.label = ctk.CTkLabel(self, text='Invoice')
+        self.label.grid(row=0, column=0, padx=20, pady=20)
 
 class TransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
+        self.label = ctk.CTkLabel(self, text='Transaction')
+        self.label.grid(row=0, column=0, padx=20, pady=20)
+
 class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+
+        self.label = ctk.CTkLabel(self, text='Report')
+        self.label.grid(row=0, column=0, padx=20, pady=20)
 
 class App(ctk.CTk):
     def __init__(self):
