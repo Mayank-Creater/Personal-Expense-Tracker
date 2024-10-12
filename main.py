@@ -216,9 +216,6 @@ class App(ctk.CTk):
         self.current_frame = None
         self.show_frame(DashboardFrame)
 
-        # self.dashboardFrame = DashboardFrame(self)
-        # self.dashboardFrame.grid(row=0, column=1, padx=10, pady=20, sticky='nsew')
-
     def show_frame(self, frame_class):
         if self.current_frame is not None:
             self.current_frame.destroy()
