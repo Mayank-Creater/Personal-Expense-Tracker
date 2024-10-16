@@ -2,14 +2,18 @@ import customtkinter as ctk
 from PIL import Image, ImageDraw
 
 BLACK = "#0F0F0F"
+GREY = "#262625"
+GREY_TEXT = "#A9A9A9"
 GREEN = "#5C8D7B"
-ORANGE = "#E35933"
+ORANGE = "#F58F36"
+ORANGE_HOVER = "#F7831E"
+WHITE = "#FFF"
 
 class NavBarFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
 
-        self.configure(fg_color='#363535', corner_radius=16)
+        self.configure(fg_color=GREY, corner_radius=16)
         self.grid_rowconfigure(8, weight=1)
 
         self.btnWidth = 200
@@ -17,10 +21,10 @@ class NavBarFrame(ctk.CTkFrame):
         self.labelFont = ('Gilroy-Medium', 20)
         self.btnFont = ('Gilroy-Regular', 20)
 
-        self.dashboardIcon = ctk.CTkImage(Image.open('./images/dashboard.png'))
-        self.invoiceIcon = ctk.CTkImage(Image.open('./images/invoice.png'))
-        self.transactionIcon = ctk.CTkImage(Image.open('./images/transaction.png'))
-        self.reportIcon = ctk.CTkImage(Image.open('./images/report.png'))
+        self.dashboardIcon = ctk.CTkImage(Image.open('./images/dashboard_white.png'))
+        self.invoiceIcon = ctk.CTkImage(Image.open('./images/invoice_white.png'))
+        self.transactionIcon = ctk.CTkImage(Image.open('./images/transaction_white.png'))
+        self.reportIcon = ctk.CTkImage(Image.open('./images/report_white.png'))
 
 
         self.userFrame = ctk.CTkFrame(self)
@@ -56,9 +60,9 @@ class NavBarFrame(ctk.CTkFrame):
                                     image=self.dashboardIcon, 
                                     anchor='w', 
                                     corner_radius=8, 
-                                    fg_color='#ff0000', 
-                                    text_color="#000",
-                                    hover_color='#ff5555',
+                                    fg_color=ORANGE, 
+                                    text_color=WHITE,
+                                    hover_color=ORANGE_HOVER,
                                     font=self.btnFont,
                                     command=self.dashboard_btn_callback)
 
@@ -73,8 +77,8 @@ class NavBarFrame(ctk.CTkFrame):
                                     anchor='w', 
                                     corner_radius=8, 
                                     fg_color='transparent', 
-                                    text_color="#000",
-                                    hover_color='#ff5555',
+                                    text_color=GREY_TEXT,
+                                    hover_color=ORANGE_HOVER,
                                     font=self.btnFont,
                                     command=self.invoice_btn_callback)
 
@@ -87,8 +91,8 @@ class NavBarFrame(ctk.CTkFrame):
                                     anchor='w', 
                                     corner_radius=8, 
                                     fg_color='transparent', 
-                                    hover_color='#ff5555',
-                                    text_color='#000',
+                                    hover_color=ORANGE_HOVER,
+                                    text_color=GREY_TEXT,
                                     font=self.btnFont,
                                     command=self.transaction_btn_callback)
 
@@ -105,8 +109,8 @@ class NavBarFrame(ctk.CTkFrame):
                                        anchor='w', 
                                        corner_radius=8, 
                                        fg_color='transparent', 
-                                       hover_color='#ff5555',
-                                       text_color='#000',
+                                       hover_color=ORANGE_HOVER,
+                                       text_color=GREY_TEXT,
                                        font=self.btnFont,
                                        command=self.report_btn_callback)
         
@@ -117,8 +121,8 @@ class NavBarFrame(ctk.CTkFrame):
                                         width=self.btnWidth,
                                         height=self.btnHeight,
                                         corner_radius=10,
-                                        fg_color='#1111ff',
-                                        text_color='#fff',
+                                        fg_color='#fff',
+                                        text_color='#000',
                                         font=self.btnFont)
         self.signoutBtn.grid(row=9, column=0, pady=(0,10))
 
@@ -137,31 +141,31 @@ class NavBarFrame(ctk.CTkFrame):
         return rounded_image
 
     def change_to_default(self):
-        self.dashboardBtn.configure(fg_color='transparent')
-        self.invoiceBtn.configure(fg_color='transparent')
-        self.transactionBtn.configure(fg_color='transparent')
-        self.reportBtn.configure(fg_color='transparent')
+        self.dashboardBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
+        self.invoiceBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
+        self.transactionBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
+        self.reportBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
 
 
     def dashboard_btn_callback(self):
         self.master.show_frame(DashboardFrame)
         self.change_to_default()
-        self.dashboardBtn.configure(fg_color='#ff0000')
+        self.dashboardBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def invoice_btn_callback(self):
         self.master.show_frame(InvoiceFrame)
         self.change_to_default()
-        self.invoiceBtn.configure(fg_color='#ff0000')
+        self.invoiceBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def transaction_btn_callback(self):
         self.master.show_frame(TransactionFrame)
         self.change_to_default()
-        self.transactionBtn.configure(fg_color='#ff0000')
+        self.transactionBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def report_btn_callback(self):
         self.master.show_frame(ReportFrame)
         self.change_to_default()
-        self.reportBtn.configure(fg_color='#ff0000')
+        self.reportBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def signout_btn_callback(self):
         pass
