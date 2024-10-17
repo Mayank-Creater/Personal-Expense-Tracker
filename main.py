@@ -8,6 +8,9 @@ GREEN = "#5C8D7B"
 ORANGE = "#F58F36"
 ORANGE_HOVER = "#F7831E"
 WHITE = "#FFF"
+BOLD_FONT = ("Gilroy-Bold", 24)
+MEDIUM_FONT = ('Gilroy-Medium', 20)
+REGULAR_FONT = ('Gilroy-Regular', 20)
 
 class NavBarFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -18,8 +21,6 @@ class NavBarFrame(ctk.CTkFrame):
 
         self.btnWidth = 200
         self.btnHeight = 48
-        self.labelFont = ('Gilroy-Medium', 20)
-        self.btnFont = ('Gilroy-Regular', 20)
 
         self.dashboardIcon = ctk.CTkImage(Image.open('./images/dashboard_white.png'))
         self.invoiceIcon = ctk.CTkImage(Image.open('./images/invoice_white.png'))
@@ -45,14 +46,14 @@ class NavBarFrame(ctk.CTkFrame):
         self.text_label = ctk.CTkLabel(self.userFrame, 
                                        text="Hi, Mayank", 
                                        text_color='#fff', 
-                                       font=("Gilroy-Bold", 24))
+                                       font=BOLD_FONT)
         self.text_label.grid(row=2, column=0)
 
         self.separator = ctk.CTkProgressBar(self.userFrame, height=2, width=175)
         self.separator.configure(progress_color='#ff0000', fg_color="#ff0000")
         self.separator.grid(row=3, column=0, pady=(50,0))
 
-        self.adminLabel = ctk.CTkLabel(self, text="Administration", text_color="#fff", font=self.labelFont)
+        self.adminLabel = ctk.CTkLabel(self, text="Administration", text_color="#fff", font=MEDIUM_FONT)
         self.adminLabel.grid(row=1, column=0, padx=10, sticky="w")        
         self.dashboardBtn = ctk.CTkButton(self, text="Dashboard", 
                                     width=self.btnWidth, 
@@ -63,12 +64,12 @@ class NavBarFrame(ctk.CTkFrame):
                                     fg_color=ORANGE, 
                                     text_color=WHITE,
                                     hover_color=ORANGE_HOVER,
-                                    font=self.btnFont,
+                                    font=REGULAR_FONT,
                                     command=self.dashboard_btn_callback)
 
         self.dashboardBtn.grid(row=2, column=0, padx=(30,10), pady=(4,10))
 
-        self.managementLabel = ctk.CTkLabel(self, text="Management", text_color="#fff", font=self.labelFont)
+        self.managementLabel = ctk.CTkLabel(self, text="Management", text_color="#fff", font=MEDIUM_FONT)
         self.managementLabel.grid(row=3, column=0, padx=10, sticky='w')
         self.invoiceBtn = ctk.CTkButton(self, text="Invoices", 
                                     width=self.btnWidth, 
@@ -79,7 +80,7 @@ class NavBarFrame(ctk.CTkFrame):
                                     fg_color='transparent', 
                                     text_color=GREY_TEXT,
                                     hover_color=ORANGE_HOVER,
-                                    font=self.btnFont,
+                                    font=REGULAR_FONT,
                                     command=self.invoice_btn_callback)
 
         self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,2))
@@ -93,12 +94,12 @@ class NavBarFrame(ctk.CTkFrame):
                                     fg_color='transparent', 
                                     hover_color=ORANGE_HOVER,
                                     text_color=GREY_TEXT,
-                                    font=self.btnFont,
+                                    font=REGULAR_FONT,
                                     command=self.transaction_btn_callback)
 
         self.transactionBtn.grid(row=5, column=0, padx=(30,10), pady=(2,10))
 
-        self.accountingLabel = ctk.CTkLabel(self, text="Accounting", text_color="#fff", font=self.labelFont)
+        self.accountingLabel = ctk.CTkLabel(self, text="Accounting", text_color="#fff", font=MEDIUM_FONT)
         self.accountingLabel.grid(row=6, column=0, padx=10, sticky='w')
 
         self.reportBtn = ctk.CTkButton(self,
@@ -111,7 +112,7 @@ class NavBarFrame(ctk.CTkFrame):
                                        fg_color='transparent', 
                                        hover_color=ORANGE_HOVER,
                                        text_color=GREY_TEXT,
-                                       font=self.btnFont,
+                                       font=REGULAR_FONT,
                                        command=self.report_btn_callback)
         
         self.reportBtn.grid(row=7, column=0, padx=(30,10), pady=(4,20))
@@ -123,10 +124,10 @@ class NavBarFrame(ctk.CTkFrame):
                                         corner_radius=10,
                                         fg_color='#fff',
                                         text_color='#000',
-                                        font=self.btnFont)
+                                        font=REGULAR_FONT)
         self.signoutBtn.grid(row=9, column=0, pady=(0,10))
 
-    def add_corners(self, image_path, radius):
+    def add_corners(self, image_path, radius=80):
         image = Image.open(image_path).convert("RGBA")
 
         # Create a mask 
@@ -173,9 +174,77 @@ class NavBarFrame(ctk.CTkFrame):
 class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+        self.grid_rowconfigure(1, weight=1)
+        self.configure(fg_color='transparent')
         
-        self.label = ctk.CTkLabel(self, text='Dashboard')
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+        self.topFrame = ctk.CTkFrame(self, fg_color='transparent')
+        self.topFrame.grid(row=0, column=0, padx=20, pady=20)
+
+        self.title = ctk.CTkLabel(self.topFrame, text='Our services', font=BOLD_FONT, text_color=WHITE)
+        self.title.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        
+        self.btnFrame1 = ctk.CTkFrame(self.topFrame, fg_color='#f19882', width=160, height=200, corner_radius=16)
+        self.btnFrame1.grid(row=1, column=0, padx=(10,0), pady=10)
+
+        # image = NavBarFrame.add_corners(DashboardFrame, './images/avatar.jpg', 80)
+        # photo = ctk.CTkImage(NavBarFrame.add_corners(DashboardFrame, './images/avatar.jpg', 80), size=(50, 50))
+        
+        self.btnIcon1 = ctk.CTkLabel(self.btnFrame1,
+                                        text='', 
+                                        # image=ctk.CTkImage(NavBarFrame.add_corners(DashboardFrame, './images/expense_black.png', 80), size=(50, 50)), 
+                                        image=ctk.CTkImage(Image.open('./images/expense_black.png'), size=(50, 50)), 
+                                        corner_radius=16)
+        self.btnIcon1.grid(row=0, column=0, padx=30, pady=(30,20))
+
+        self.btnText1 = ctk.CTkLabel(self.btnFrame1, 
+                                       text="Expense\nAnalysis", 
+                                       text_color='#fff', 
+                                       font=REGULAR_FONT)
+        self.btnText1.grid(row=2, column=0, padx=20, pady=20)
+
+
+        self.btnFrame2 = ctk.CTkFrame(self.topFrame, fg_color='#d82746', width=160, corner_radius=16)
+        self.btnFrame2.grid(row=1, column=1, padx=(0,0), pady=10)
+
+        self.btnIcon2 = ctk.CTkLabel(self.btnFrame2,
+                                        text='', 
+                                        # image=ctk.CTkImage(NavBarFrame.add_corners(DashboardFrame, './images/budget_black.png', 80), size=(50, 50)), 
+                                        image=ctk.CTkImage(Image.open('./images/budget_black.png'), size=(50, 50)), 
+                                        corner_radius=16)
+        self.btnIcon2.grid(row=0, column=0, padx=30, pady=(30,20))
+
+        self.btnText2 = ctk.CTkLabel(self.btnFrame2, 
+                                       text="Budget\nPlanning", 
+                                       text_color='#fff', 
+                                       font=REGULAR_FONT)
+        self.btnText2.grid(row=2, column=0, padx=20, pady=20)
+
+
+        self.btnFrame3 = ctk.CTkFrame(self.topFrame, fg_color='#a14231', width=160, corner_radius=16)
+        self.btnFrame3.grid(row=1, column=2, padx=(5,10), pady=10)
+
+        self.btnIcon3 = ctk.CTkLabel(self.btnFrame3,
+                                        text='', 
+                                        # image=ctk.CTkImage(NavBarFrame.add_corners(DashboardFrame, './images/reminder_black.png', 80), size=(50, 50)), 
+                                        image=ctk.CTkImage(Image.open('./images/reminder_black.png'), size=(50, 50)), 
+                                        corner_radius=16)
+        self.btnIcon3.grid(row=0, column=0, padx=30, pady=(30,20))
+
+        self.btnText3 = ctk.CTkLabel(self.btnFrame3, 
+                                       text="Monthly\nReminder", 
+                                       text_color='#fff', 
+                                       font=REGULAR_FONT)
+        self.btnText3.grid(row=2, column=0, padx=20, pady=20)
+
+
+
+        # self.bottomFrame = ctk.CTkFrame(self, fg_color='#ff0000')
+        # self.bottomFrame.grid(row=1, column=0, padx=20, pady=20)
+
+        self.btnFrame1.bind('<Button-1>', lambda x:print('Pressed btnFrame1'))
+        self.btnFrame2.bind('<Button-1>', lambda x:print('Pressed btnFrame2'))
+        self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
+
 
 class InvoiceFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -250,6 +319,9 @@ class LoginPage(ctk.CTk):
         self.loginBtn = ctk.CTkButton(self, text="Login", command=self.validate_login)
         self.loginBtn.grid(row=2, column=0, padx=20, pady=20, columnspan=2)
         self.bind('<Return>', self.validate_login)
+
+        # self.userEntry.insert(0, 'admin')
+        # self.passEntry.insert(0, 'admin')
 
     def validate_login(self, event=None):
         username = self.userEntry.get()
