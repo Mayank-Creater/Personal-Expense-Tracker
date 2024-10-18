@@ -124,12 +124,12 @@ class NavBarFrame(ctk.CTkFrame):
                                         corner_radius=10,
                                         fg_color='#fff',
                                         text_color='#000',
-                                        font=REGULAR_FONT)
+                                        font=REGULAR_FONT,
+                                        command=self.signout_btn_callback)
         self.signoutBtn.grid(row=9, column=0, pady=(0,10))
 
     def add_corners(self, image_path, radius=80):
         image = Image.open(image_path).convert("RGBA")
-
         # Create a mask 
         mask = Image.new("L", image.size, 0)
         draw = ImageDraw.Draw(mask)
@@ -169,19 +169,20 @@ class NavBarFrame(ctk.CTkFrame):
         self.reportBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def signout_btn_callback(self):
-        pass
+        self.master.destroy()
+        LoginPage().mainloop()
 
 class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-        self.grid_rowconfigure(1, weight=1)
+        # self.grid_columnconfigure((0,1), weight=1)
         self.configure(fg_color='transparent')
         
         self.topFrame = ctk.CTkFrame(self, fg_color='transparent')
-        self.topFrame.grid(row=0, column=0, padx=20, pady=20)
+        self.topFrame.grid(row=0, column=0, padx=20, pady=20, sticky='ew')
 
-        self.title = ctk.CTkLabel(self.topFrame, text='Our services', font=BOLD_FONT, text_color=WHITE)
-        self.title.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        self.titleTop = ctk.CTkLabel(self.topFrame, text='Our services', font=BOLD_FONT, text_color=WHITE)
+        self.titleTop.grid(row=0, column=0, padx=10, pady=10, sticky='w')
         
         self.btnFrame1 = ctk.CTkFrame(self.topFrame, fg_color='#f19882', width=160, height=200, corner_radius=16)
         self.btnFrame1.grid(row=1, column=0, padx=(10,0), pady=10)
@@ -236,14 +237,16 @@ class DashboardFrame(ctk.CTkFrame):
                                        font=REGULAR_FONT)
         self.btnText3.grid(row=2, column=0, padx=20, pady=20)
 
-
-
-        # self.bottomFrame = ctk.CTkFrame(self, fg_color='#ff0000')
-        # self.bottomFrame.grid(row=1, column=0, padx=20, pady=20)
-
         self.btnFrame1.bind('<Button-1>', lambda x:print('Pressed btnFrame1'))
         self.btnFrame2.bind('<Button-1>', lambda x:print('Pressed btnFrame2'))
         self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
+
+        # self.grid_rowconfigure(1, weight=1)
+        self.bottomFrame = ctk.CTkFrame(self, fg_color='transparent')
+        self.bottomFrame.grid(row=1, column=0, padx=20, pady=20, sticky='ew')
+
+        self.titleBottom = ctk.CTkLabel(self.bottomFrame, text='Recent Expenses', font=BOLD_FONT, text_color=WHITE)
+        self.titleBottom.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
 
 class InvoiceFrame(ctk.CTkFrame):
