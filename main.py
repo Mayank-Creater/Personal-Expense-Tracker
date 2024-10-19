@@ -1,5 +1,6 @@
 import customtkinter as ctk
 from PIL import Image, ImageDraw
+from mysql.connector import Error, connection
 
 BLACK = "#0F0F0F"
 GREY = "#262625"
@@ -175,7 +176,6 @@ class NavBarFrame(ctk.CTkFrame):
 class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
-        # self.grid_columnconfigure((0,1), weight=1)
         self.configure(fg_color='transparent')
         
         self.topFrame = ctk.CTkFrame(self, fg_color='transparent')
@@ -242,11 +242,19 @@ class DashboardFrame(ctk.CTkFrame):
         self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
 
         # self.grid_rowconfigure(1, weight=1)
-        self.bottomFrame = ctk.CTkFrame(self, fg_color='transparent')
-        self.bottomFrame.grid(row=1, column=0, padx=20, pady=20, sticky='ew')
+        self.grid_columnconfigure(2, weight=1)
+        self.bottomLeftFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
+        self.bottomLeftFrame.grid(row=1, column=0, padx=20, pady=20, sticky='ew', columnspan=2)
 
-        self.titleBottom = ctk.CTkLabel(self.bottomFrame, text='Recent Expenses', font=BOLD_FONT, text_color=WHITE)
-        self.titleBottom.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        self.titleBottomLeft = ctk.CTkLabel(self.bottomLeftFrame, text='Recent Expenses', font=BOLD_FONT, text_color=WHITE)
+        self.titleBottomLeft.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+
+        self.bottomRightFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
+        self.bottomRightFrame.grid(row=1, column=1, padx=(0,20), pady=20, sticky='ew', columnspan=2)
+
+        self.titleBottomRight = ctk.CTkLabel(self.bottomRightFrame, text='Recent Income', font=BOLD_FONT, text_color=WHITE)
+        self.titleBottomRight.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+
 
 
 class InvoiceFrame(ctk.CTkFrame):
@@ -329,11 +337,31 @@ class LoginPage(ctk.CTk):
     def validate_login(self, event=None):
         username = self.userEntry.get()
         password = self.passEntry.get()
-        if username=='admin' and password=='admin':
-            self.destroy()
-            App().mainloop()
-        else:
-            return False
+        connector = self.create_connection()
+        if connector:
+            cursor = connector.cursor()
+
+            query = f"SELECT * FROM users WHERE username='{username}' and password='{password}'"
+            cursor.execute(query)
+            user = cursor.fetchone()
+
+            if user:
+                self.destroy()
+                App().mainloop()
+            else:
+                return False
+
+    def create_connection(self):
+        try:
+            connector = connection.MySQLConnection(host='localhost',
+                                                user='root',
+                                                password='root',
+                                                database='expense_tracker')
+            if connector.is_connected():
+                return connector
+        except Error as e:
+            print(f'Error: {e}')
+            return None
 
 if __name__=="__main__":
     app = LoginPage()
