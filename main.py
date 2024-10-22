@@ -2,6 +2,7 @@ import customtkinter as ctk
 from PIL import Image, ImageDraw
 from mysql.connector import Error, connection
 import os
+import datetime
 
 BLACK = "#0F0F0F"
 GREY = "#262625"
@@ -75,19 +76,19 @@ class NavBarFrame(ctk.CTkFrame):
 
         self.managementLabel = ctk.CTkLabel(self, text="Management", text_color="#fff", font=MEDIUM_FONT)
         self.managementLabel.grid(row=3, column=0, padx=10, sticky='w')
-        self.invoiceBtn = ctk.CTkButton(self, text="Invoices", 
-                                    width=self.btnWidth, 
-                                    height=self.btnHeight, 
-                                    image=self.invoiceIcon, 
-                                    anchor='w', 
-                                    corner_radius=8, 
-                                    fg_color='transparent', 
-                                    text_color=GREY_TEXT,
-                                    hover_color=ORANGE_HOVER,
-                                    font=REGULAR_FONT,
-                                    command=self.invoice_btn_callback)
+        # self.invoiceBtn = ctk.CTkButton(self, text="Invoices", 
+        #                             width=self.btnWidth, 
+        #                             height=self.btnHeight, 
+        #                             image=self.invoiceIcon, 
+        #                             anchor='w', 
+        #                             corner_radius=8, 
+        #                             fg_color='transparent', 
+        #                             text_color=GREY_TEXT,
+        #                             hover_color=ORANGE_HOVER,
+        #                             font=REGULAR_FONT,
+        #                             command=self.invoice_btn_callback)
 
-        self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,2))
+        # self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,2))
 
         self.transactionBtn = ctk.CTkButton(self, text="Transactions", 
                                     width=self.btnWidth, 
@@ -147,7 +148,7 @@ class NavBarFrame(ctk.CTkFrame):
 
     def change_to_default(self):
         self.dashboardBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
-        self.invoiceBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
+        # self.invoiceBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
         self.transactionBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
         self.reportBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
 
@@ -157,10 +158,10 @@ class NavBarFrame(ctk.CTkFrame):
         self.change_to_default()
         self.dashboardBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
-    def invoice_btn_callback(self):
-        self.master.show_frame(InvoiceFrame)
-        self.change_to_default()
-        self.invoiceBtn.configure(fg_color=ORANGE, text_color=WHITE)
+    # def invoice_btn_callback(self):
+    #     self.master.show_frame(InvoiceFrame)
+    #     self.change_to_default()
+    #     self.invoiceBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def transaction_btn_callback(self):
         self.master.show_frame(TransactionFrame)
@@ -245,18 +246,30 @@ class DashboardFrame(ctk.CTkFrame):
         self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
 
         # self.grid_rowconfigure(1, weight=1)
+        self.connector = App.create_connection(self)
+        self.cursor = self.connector.cursor()
+        query = "SELECT date, amount, category FROM transactions WHERE type='expense' ORDER BY date DESC"
+        self.cursor.execute(query)
+        expense = self.cursor.fetchall()
+
         self.grid_columnconfigure(2, weight=1)
-        self.bottomLeftFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
-        self.bottomLeftFrame.grid(row=2, column=0, padx=20, pady=20, sticky='ew', columnspan=2)
+        self.recentExpenseFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
+        self.recentExpenseFrame.grid(row=2, column=0, padx=20, pady=20, sticky='ew', columnspan=2)
 
-        self.titleBottomLeft = ctk.CTkLabel(self.bottomLeftFrame, text='Recent Expenses', font=BOLD_FONT, text_color=WHITE)
-        self.titleBottomLeft.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        self.titleRecentExpense = ctk.CTkLabel(self.recentExpenseFrame, text='Recent Expenses', font=BOLD_FONT, text_color=WHITE)
+        self.titleRecentExpense.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
-        self.bottomRightFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
-        self.bottomRightFrame.grid(row=2, column=2, padx=(0,20), pady=20, sticky='ew', columnspan=2)
+        for pos, i in enumerate(expense):
+            date = i[0].strftime("%d/%m/%Y")
+            self.data = ctk.CTkLabel(self.recentExpenseFrame, text=f"{date} , {i[1]} , {i[2]}", font=REGULAR_FONT, text_color=WHITE)
+            self.data.grid(row=pos+1, column=0, padx=5, pady=5, columnspan=2)
+            
 
-        self.titleBottomRight = ctk.CTkLabel(self.bottomRightFrame, text='Recent Income', font=BOLD_FONT, text_color=WHITE)
-        self.titleBottomRight.grid(row=0, column=0, padx=10, pady=10, sticky='w')
+        self.recentIncomeFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
+        self.recentIncomeFrame.grid(row=2, column=2, padx=(0,20), pady=20, sticky='ew', columnspan=2)
+
+        self.titleRecentIncome = ctk.CTkLabel(self.recentIncomeFrame, text='Recent Income', font=BOLD_FONT, text_color=WHITE)
+        self.titleRecentIncome.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
     def add_transaction_btn_callback(self):
         self.master.show_frame(AddTransactionFrame)
@@ -267,9 +280,50 @@ class DashboardFrame(ctk.CTkFrame):
 class AddTransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+        self.configure(fg_color="transparent")
 
-        self.label = ctk.CTkLabel(self, text='Add')
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+        self.title = ctk.CTkLabel(self, text='Add New Transaction', font=BOLD_FONT, text_color=WHITE)
+        self.title.grid(row=0, column=0, padx=20, pady=20)
+
+        self.amountLabel = ctk.CTkLabel(self, text="Enter Amount", font=REGULAR_FONT, text_color=WHITE)
+        self.amountEntry = ctk.CTkEntry(self)
+        self.amountLabel.grid(row=1, column=0, padx=20, pady=20, sticky='w')
+        self.amountEntry.grid(row=1, column=2, padx=(30,20), pady=20)
+
+        self.typeLabel = ctk.CTkLabel(self, text="Enter Type", font=REGULAR_FONT, text_color=WHITE)
+        self.typeEntry = ctk.CTkOptionMenu(self, values=["Expense", "Income"])
+        self.typeLabel.grid(row=2, column=0, padx=20, pady=20,sticky='w')
+        self.typeEntry.grid(row=2, column=2, padx=(30,20), pady=20)
+
+        self.dateLabel = ctk.CTkLabel(self, text="Enter Date", font=REGULAR_FONT, text_color=WHITE)
+        self.dateEntry = ctk.CTkEntry(self, placeholder_text="Enter like 09-01-2020")
+        self.dateValidLabel = ctk.CTkLabel(self, text="Not A valid Date.\nFormat should be dd-mm-yyyy", font=REGULAR_FONT, text_color='#f00')
+        self.dateLabel.grid(row=3, column=0, padx=20, pady=20, sticky='w')
+        self.dateEntry.grid(row=3, column=2, padx=(30, 20), pady=20)
+        self.dateValidLabel.grid(row=3, column=3, padx=20, pady=20)
+        self.dateEntry.bind('<KeyRelease>', self.validate_date)
+
+        self.descLabel = ctk.CTkLabel(self, text="Enter description", font=REGULAR_FONT, text_color=WHITE)
+        self.descEntry = ctk.CTkEntry(self)
+        self.descLabel.grid(row=4, column=0, padx=20, pady=20, sticky='w')
+        self.descEntry.grid(row=4, column=2, padx=(30,20), pady=20)
+
+        self.addBtn = ctk.CTkButton(self, text="Add", font=REGULAR_FONT, text_color=WHITE, fg_color=ORANGE)
+        self.addBtn.grid(row=5, column=0, padx=20, pady=20, columnspan=4)
+
+    def validate_date(self, event=None):
+        text = self.dateEntry.get()
+        res = True
+        try:
+            res = bool(datetime.datetime.strptime(text, '%d-%m-%Y'))
+        except ValueError:
+            res = False
+        
+        if res:
+            self.dateValidLabel.configure(text='')
+        else:
+            self.dateValidLabel.configure(text='Not A valid Date.\nFormat should be dd-mm-yyyy')
+
 
 
 class InvoiceFrame(ctk.CTkFrame):
@@ -322,6 +376,18 @@ class App(ctk.CTk):
         self.current_frame = frame_class(self)
         self.current_frame.grid(row=0, column=1, padx=10, pady=20, sticky='nsew')
 
+    def create_connection(self):
+        try:
+            connector = connection.MySQLConnection(host='localhost',
+                                                user='root',
+                                                password='root',
+                                                database='expense_tracker')
+            if connector.is_connected():
+                return connector
+        except Error as e:
+            print(f'Error: {e}')
+            return None
+
 
 class LoginPage(ctk.CTk):
     def __init__(self):
@@ -350,35 +416,25 @@ class LoginPage(ctk.CTk):
         # self.passEntry.insert(0, 'admin')
 
     def validate_login(self, event=None):
+        # self.destroy()
+        # App().mainloop()
         username = self.userEntry.get()
         password = self.passEntry.get()
-        connector = self.create_connection()
+        connector = App.create_connection(self)
         if connector:
             cursor = connector.cursor()
 
             query = f"SELECT * FROM users WHERE username='{username}' and password='{password}'"
             cursor.execute(query)
             user = cursor.fetchone()
+            connector.close()
 
             if user:
                 self.destroy()
                 App().mainloop()
             else:
                 return False
-        # self.destroy()
-        # App().mainloop()
 
-    def create_connection(self):
-        try:
-            connector = connection.MySQLConnection(host='localhost',
-                                                user='root',
-                                                password='root',
-                                                database='expense_tracker')
-            if connector.is_connected():
-                return connector
-        except Error as e:
-            print(f'Error: {e}')
-            return None
 
 if __name__=="__main__":
     app = LoginPage()
