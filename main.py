@@ -15,6 +15,8 @@ BOLD_FONT = ("Gilroy-Bold", 24)
 MEDIUM_FONT = ('Gilroy-Medium', 20)
 REGULAR_FONT = ('Gilroy-Regular', 20)
 
+userId = None
+
 baseDir = os.getcwd()
 
 class NavBarFrame(ctk.CTkFrame):
@@ -181,7 +183,6 @@ class DashboardFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.configure(fg_color='transparent')
-        # self.grid_columnconfigure(0, weight=1)
 
         self.addIcon = ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/add_white.png')), size=(24,24))
 
@@ -245,10 +246,9 @@ class DashboardFrame(ctk.CTkFrame):
         self.btnFrame2.bind('<Button-1>', lambda x:print('Pressed btnFrame2'))
         self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
 
-        # self.grid_rowconfigure(1, weight=1)
         self.connector = App.create_connection(self)
         self.cursor = self.connector.cursor()
-        query = "SELECT date, amount, category FROM transactions WHERE type='expense' ORDER BY date DESC"
+        query = f"SELECT date, amount, category FROM transactions WHERE type='expense' AND user_id={userId} ORDER BY date desc, id DESC LIMIT 5"
         self.cursor.execute(query)
         expense = self.cursor.fetchall()
 
@@ -261,68 +261,140 @@ class DashboardFrame(ctk.CTkFrame):
 
         for pos, i in enumerate(expense):
             date = i[0].strftime("%d/%m/%Y")
-            self.data = ctk.CTkLabel(self.recentExpenseFrame, text=f"{date} , {i[1]} , {i[2]}", font=REGULAR_FONT, text_color=WHITE)
-            self.data.grid(row=pos+1, column=0, padx=5, pady=5, columnspan=2)
+            self.data = ctk.CTkLabel(self.recentExpenseFrame, text=f"{date} \t {i[1]} \t {i[2]}", font=REGULAR_FONT, text_color=WHITE)
+            self.data.grid(row=pos+1, column=0, padx=5, pady=5, columnspan=2, sticky='w')
             
+        query = f"SELECT date, amount, category FROM transactions WHERE type='income' AND user_id={userId} ORDER BY date DESC, id desc LIMIT 5"
+        self.cursor.execute(query)
+        income = self.cursor.fetchall()
 
         self.recentIncomeFrame = ctk.CTkFrame(self, fg_color='#0a0a0a')
-        self.recentIncomeFrame.grid(row=2, column=2, padx=(0,20), pady=20, sticky='ew', columnspan=2)
+        self.recentIncomeFrame.grid(row=2, column=2, padx=(0,20), pady=20, sticky='nsew', columnspan=2)
 
         self.titleRecentIncome = ctk.CTkLabel(self.recentIncomeFrame, text='Recent Income', font=BOLD_FONT, text_color=WHITE)
         self.titleRecentIncome.grid(row=0, column=0, padx=10, pady=10, sticky='w')
 
+        for pos, i in enumerate(income):
+            date = i[0].strftime("%d/%m/%Y")
+            self.data = ctk.CTkLabel(self.recentIncomeFrame, text=f"{date} \t {i[1]} \t {i[2]}", font=REGULAR_FONT, text_color=WHITE)
+            self.data.grid(row=pos+1, column=0, padx=5, pady=5, columnspan=2, sticky='w')
+
     def add_transaction_btn_callback(self):
         self.master.show_frame(AddTransactionFrame)
-        # self.change_to_default()
-        # self.transactionBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
 
 class AddTransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
         self.configure(fg_color="transparent")
+        self.grid_columnconfigure(3, weight=1)
 
         self.title = ctk.CTkLabel(self, text='Add New Transaction', font=BOLD_FONT, text_color=WHITE)
         self.title.grid(row=0, column=0, padx=20, pady=20)
 
         self.amountLabel = ctk.CTkLabel(self, text="Enter Amount", font=REGULAR_FONT, text_color=WHITE)
         self.amountEntry = ctk.CTkEntry(self)
+        self.amountValidLabel = ctk.CTkLabel(self, text="Can't be Empty.", font=REGULAR_FONT, text_color='#f00')
         self.amountLabel.grid(row=1, column=0, padx=20, pady=20, sticky='w')
         self.amountEntry.grid(row=1, column=2, padx=(30,20), pady=20)
+        self.amountValidLabel.grid(row=1, column=3, padx=20, pady=20)
+        self.amountEntry.bind('<KeyRelease>', self.validate_amount)
 
         self.typeLabel = ctk.CTkLabel(self, text="Enter Type", font=REGULAR_FONT, text_color=WHITE)
         self.typeEntry = ctk.CTkOptionMenu(self, values=["Expense", "Income"])
         self.typeLabel.grid(row=2, column=0, padx=20, pady=20,sticky='w')
         self.typeEntry.grid(row=2, column=2, padx=(30,20), pady=20)
 
+        self.categoryLabel = ctk.CTkLabel(self, text="Enter category", font=REGULAR_FONT, text_color=WHITE)
+        self.categoryEntry = ctk.CTkEntry(self)
+        self.categoryValidLabel = ctk.CTkLabel(self, text="Can't be Empty.", font=REGULAR_FONT, text_color="#f00")
+        self.categoryLabel.grid(row=3, column=0, padx=20, pady=20, sticky='w')
+        self.categoryEntry.grid(row=3, column=2, padx=(30, 20), pady=20)
+        self.categoryValidLabel.grid(row=3, column=3, padx=20, pady=20)
+        self.categoryEntry.bind('<KeyRelease>', self.validate_category)
+
         self.dateLabel = ctk.CTkLabel(self, text="Enter Date", font=REGULAR_FONT, text_color=WHITE)
         self.dateEntry = ctk.CTkEntry(self, placeholder_text="Enter like 09-01-2020")
-        self.dateValidLabel = ctk.CTkLabel(self, text="Not A valid Date.\nFormat should be dd-mm-yyyy", font=REGULAR_FONT, text_color='#f00')
-        self.dateLabel.grid(row=3, column=0, padx=20, pady=20, sticky='w')
-        self.dateEntry.grid(row=3, column=2, padx=(30, 20), pady=20)
-        self.dateValidLabel.grid(row=3, column=3, padx=20, pady=20)
+        self.dateValidLabel = ctk.CTkLabel(self, text="Can't be Empty.", font=REGULAR_FONT, text_color='#f00')
+        self.dateLabel.grid(row=4, column=0, padx=20, pady=20, sticky='w')
+        self.dateEntry.grid(row=4, column=2, padx=(30, 20), pady=20)
+        self.dateValidLabel.grid(row=4, column=3, padx=20, pady=20)
         self.dateEntry.bind('<KeyRelease>', self.validate_date)
 
         self.descLabel = ctk.CTkLabel(self, text="Enter description", font=REGULAR_FONT, text_color=WHITE)
         self.descEntry = ctk.CTkEntry(self)
-        self.descLabel.grid(row=4, column=0, padx=20, pady=20, sticky='w')
-        self.descEntry.grid(row=4, column=2, padx=(30,20), pady=20)
+        self.descLabel.grid(row=5, column=0, padx=20, pady=20, sticky='w')
+        self.descEntry.grid(row=5, column=2, padx=(30,20), pady=20)
 
-        self.addBtn = ctk.CTkButton(self, text="Add", font=REGULAR_FONT, text_color=WHITE, fg_color=ORANGE)
-        self.addBtn.grid(row=5, column=0, padx=20, pady=20, columnspan=4)
+        self.addBtn = ctk.CTkButton(self, text="Add", font=REGULAR_FONT, text_color=WHITE, fg_color=ORANGE, command=self.add_btn_callback)
+        self.addErrorLabel = ctk.CTkLabel(self, text='', font=REGULAR_FONT, text_color='#f00')
+        self.addBtn.grid(row=6, column=0, padx=20, pady=20, columnspan=4)
+        self.addErrorLabel.grid(row=7, column=0, padx=20, pady=20, columnspan=4)
 
     def validate_date(self, event=None):
         text = self.dateEntry.get()
-        res = True
-        try:
-            res = bool(datetime.datetime.strptime(text, '%d-%m-%Y'))
-        except ValueError:
-            res = False
-        
-        if res:
-            self.dateValidLabel.configure(text='')
+        if text != '':
+            res = True
+            try:
+                res = bool(datetime.datetime.strptime(text, '%d-%m-%Y'))
+            except ValueError:
+                res = False
+            
+            if res:
+                self.dateValidLabel.configure(text='')
+            else:
+                self.dateValidLabel.configure(text='Not A valid Date.\nFormat should be dd-mm-yyyy')
         else:
-            self.dateValidLabel.configure(text='Not A valid Date.\nFormat should be dd-mm-yyyy')
+            self.dateValidLabel.configure(text="Can't be Empty.")
+
+    def validate_amount(self, event=None):
+        text = self.amountEntry.get()
+        if text != '':
+            if text.isdigit():
+                self.amountValidLabel.configure(text='')
+            else:
+                self.amountValidLabel.configure(text='Not a valid Amount.\nMust be numeric.')
+        else:
+            self.amountValidLabel.configure(text="Can't be Empty.")
+            
+    def validate_category(self, event=None):
+        text = self.categoryEntry.get()
+
+        if text:
+            self.categoryValidLabel.configure(text='')
+        else:
+            self.categoryValidLabel.configure(text="Can't be Empty.")
+
+    def add_btn_callback(self):
+        try:
+            amount = self.amountEntry.get()
+            type = self.typeEntry.get()
+            category = self.categoryEntry.get()
+            date = self.dateEntry.get()
+            date = datetime.datetime.strptime(date, '%d-%m-%Y').strftime("%Y-%m-%d")
+            desc = self.descEntry.get()
+
+            validAmount = bool(self.amountValidLabel.cget('text'))
+            validDate = bool(self.dateValidLabel.cget('text'))
+            validCategory = bool(self.categoryValidLabel.cget('text'))
+
+            if not(validAmount) and not(validDate) and not(validCategory):
+                connector = App.create_connection(self)
+                if connector:
+                    cursor = connector.cursor()
+                    query = "SELECT id from transactions order by id desc"
+                    cursor.execute(query)
+                    id = cursor.fetchall()[0][0] + 1
+
+                    query = f"insert into transactions value({id}, {userId}, '{type}', '{category}', {amount}, '{date}', description='{desc}')"
+                    cursor.execute(query)
+                    connector.commit()
+                    connector.close()
+
+                    self.master.show_frame(DashboardFrame)
+
+        except:
+            self.addErrorLabel.configure(text='Data Invalid.\nPlease enter correct data.', text_color="#f00")
 
 
 
@@ -412,10 +484,14 @@ class LoginPage(ctk.CTk):
         self.loginBtn.grid(row=2, column=0, padx=20, pady=20, columnspan=2)
         self.bind('<Return>', self.validate_login)
 
+        self.invalidLabel = ctk.CTkLabel(self, text='', text_color='#f00')
+        self.invalidLabel.grid(row=3, column=0, padx=10, pady=10, columnspan=2)
+
         # self.userEntry.insert(0, 'admin')
         # self.passEntry.insert(0, 'admin')
 
     def validate_login(self, event=None):
+        global userId
         # self.destroy()
         # App().mainloop()
         username = self.userEntry.get()
@@ -430,10 +506,11 @@ class LoginPage(ctk.CTk):
             connector.close()
 
             if user:
+                userId = user[0]
                 self.destroy()
                 App().mainloop()
             else:
-                return False
+                self.invalidLabel.configure(text='Invalid Credentials')
 
 
 if __name__=="__main__":
