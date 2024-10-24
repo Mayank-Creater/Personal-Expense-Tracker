@@ -3,6 +3,8 @@ from PIL import Image, ImageDraw
 from mysql.connector import Error, connection
 import os
 import datetime
+import csv
+import random
 
 BLACK = "#0F0F0F"
 GREY = "#262625"
@@ -370,6 +372,7 @@ class AddTransactionFrame(ctk.CTkFrame):
             amount = self.amountEntry.get()
             type = self.typeEntry.get()
             category = self.categoryEntry.get()
+            category = category.capitalize()
             date = self.dateEntry.get()
             date = datetime.datetime.strptime(date, '%d-%m-%Y').strftime("%Y-%m-%d")
             desc = self.descEntry.get()
@@ -398,12 +401,12 @@ class AddTransactionFrame(ctk.CTkFrame):
 
 
 
-class InvoiceFrame(ctk.CTkFrame):
-    def __init__(self, master):
-        super().__init__(master)
+# class InvoiceFrame(ctk.CTkFrame):
+#     def __init__(self, master):
+#         super().__init__(master)
 
-        self.label = ctk.CTkLabel(self, text='Invoice')
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+#         self.label = ctk.CTkLabel(self, text='Invoice')
+#         self.label.grid(row=0, column=0, padx=20, pady=20)
 
 class TransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -415,9 +418,169 @@ class TransactionFrame(ctk.CTkFrame):
 class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+        self.configure(fg_color="transparent")
 
-        self.label = ctk.CTkLabel(self, text='Report')
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+        self.generateDateReportTitle = ctk.CTkLabel(self, text='Generate Datewise Report', font=BOLD_FONT, text_color=WHITE)
+        self.generateDateReportTitle.grid(row=0, column=0, padx=20, pady=20, sticky='w')
+        
+        self.dateLabel = ctk.CTkLabel(self, text='Enter Date interval', font=REGULAR_FONT, text_color=WHITE)
+        self.startDate = ctk.CTkEntry(self, placeholder_text="Start Date")
+        self.to = ctk.CTkLabel(self, text='to', font=REGULAR_FONT, text_color=WHITE)
+        self.endDate = ctk.CTkEntry(self, placeholder_text="End Date")
+        self.generateDateReportBtn = ctk.CTkButton(self, text="Generate", font=REGULAR_FONT, command=self.generate_report)
+        self.dateValidLabel = ctk.CTkLabel(self, text="", font=REGULAR_FONT, text_color="#f00")
+        self.dateLabel.grid(row=1, column=0, padx=20, pady=20, sticky='w')
+        self.startDate.grid(row=1, column=1, padx=5, pady=20)
+        self.to.grid(row=1, column=2, padx=5, pady=20)
+        self.endDate.grid(row=1, column=3, padx=5, pady=20)
+        self.generateDateReportBtn.grid(row=1, column=4, padx=20, pady=20)
+        self.dateValidLabel.grid(row=2, column=0, padx=20, pady=20, columnspan=5)
+
+        self.generateCategoryReportTitle = ctk.CTkLabel(self, text="Generate Category-wise Report", font=BOLD_FONT, text_color=WHITE)
+        self.generateCategoryReportTitle.grid(row=3, padx=20, pady=(50,20))
+
+        self.startDate.bind("<KeyRelease>", self.validate_date_date)
+        self.endDate.bind("<KeyRelease>", self.validate_date_date)
+
+        connector = App.create_connection(self)
+        if connector:
+            cursor = connector.cursor()
+            query = "SELECT DISTINCT category FROM transactions;"
+            cursor.execute(query)
+            values = [x[0] for x in cursor.fetchall()]
+            connector.close()
+
+        self.selectCategoryLabel = ctk.CTkLabel(self, text="Select Category", font=REGULAR_FONT, text_color=WHITE)
+        self.selectCategoryOption = ctk.CTkOptionMenu(self, values=values)
+        self.selectCategoryLabel.grid(row=4, column=0, padx=20, pady=20, sticky='w')
+        self.selectCategoryOption.grid(row=4, column=1, padx=5, pady=20)
+
+        self.categoryDateLabel = ctk.CTkLabel(self, text='Enter Date interval', font=REGULAR_FONT, text_color=WHITE)
+        self.categoryStartDate = ctk.CTkEntry(self, placeholder_text="Start Date")
+        self.to2 = ctk.CTkLabel(self, text='to', font=REGULAR_FONT, text_color=WHITE)
+        self.categoryEndDate = ctk.CTkEntry(self, placeholder_text="End Date")
+        self.generateCategoryReportBtn = ctk.CTkButton(self, text="Generate", font=REGULAR_FONT, command=self.generate_category_report)
+        self.categoryDateValidLabel = ctk.CTkLabel(self, text="", font=REGULAR_FONT, text_color="#f00")
+        self.categoryDateLabel.grid(row=5, column=0, padx=20, pady=20, sticky='w')
+        self.categoryStartDate.grid(row=5, column=1, padx=5, pady=20)
+        self.to2.grid(row=5, column=2, padx=5, pady=20)
+        self.categoryEndDate.grid(row=5, column=3, padx=5, pady=20)
+        self.generateCategoryReportBtn.grid(row=5, column=4, padx=20, pady=20)
+        self.categoryDateValidLabel.grid(row=6, column=0, padx=20, pady=20, columnspan=5)
+
+        self.categoryStartDate.bind("<KeyRelease>", self.validate_date_category)
+        self.categoryEndDate.bind("<KeyRelease>", self.validate_date_category)
+
+    def validate_date_date(self, event=None):
+        startDate = self.startDate.get()
+        endDate = self.endDate.get()
+
+        if startDate != '' or endDate !='':
+            resStart = True
+            resEnd = True
+            try:
+                resStart = bool(datetime.datetime.strptime(startDate, '%d-%m-%Y'))
+                resEnd = bool(datetime.datetime.strptime(endDate, '%d-%m-%Y'))
+            except ValueError:
+                resStart = False
+                resEnd = False
+            
+            if resStart==True and resEnd==True:
+                self.dateValidLabel.configure(text='')
+            else:
+                self.dateValidLabel.configure(text='Not A valid Date.\nFormat should be dd-mm-yyyy')
+        else:
+            self.dateValidLabel.configure(text="")
+
+    def validate_date_category(self, event=None):
+        startDate = self.categoryStartDate.get()
+        endDate = self.categoryEndDate.get()
+        if startDate != '' or endDate !='':
+            resStart = True
+            resEnd = True
+            try:
+                resStart = bool(datetime.datetime.strptime(startDate, '%d-%m-%Y'))
+                resEnd = bool(datetime.datetime.strptime(endDate, '%d-%m-%Y'))
+            except ValueError:
+                resStart = False
+                resEnd = False
+            
+            if resStart==True and resEnd==True:
+                self.categoryDateValidLabel.configure(text='')
+            else:
+                self.categoryDateValidLabel.configure(text='Not A valid Date.\nFormat should be dd-mm-yyyy')
+        else:
+            self.categoryDateValidLabel.configure(text="")
+
+    def generate_report(self):
+        startDate = self.startDate.get()
+        endDate = self.endDate.get()
+        connector = App.create_connection(self)
+        if connector:
+            cursor = connector.cursor()
+            if startDate != '' and endDate != '':
+                startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}'"
+            elif startDate == '' and endDate != '':
+                endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date < '{endDate}'"
+            elif startDate != '' and endDate == '':
+                startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date > '{startDate}'"
+            else:
+                query = "SELECT * FROM transactions"
+
+            cursor.execute(query)
+
+            result = cursor.fetchall()
+
+            column_names = [i[0] for i in cursor.description]
+            fileName = f'Report_{random.randint(1,999999)}.csv'
+            fp = open(fileName, 'w')
+            myFile = csv.writer(fp, lineterminator = '\n') #use lineterminator for windows
+            myFile.writerow(column_names)
+            myFile.writerows(result)
+            fp.close()
+
+            connector.close()
+            self.dateValidLabel.configure(text=f"Report Generated.\n Saved as {fileName}", text_color="#0f0")
+
+    def generate_category_report(self):
+        startDate = self.categoryStartDate.get()
+        endDate = self.categoryEndDate.get()
+        category = self.selectCategoryOption.get()
+        connector = App.create_connection(self)
+        if connector:
+            cursor = connector.cursor()
+            if startDate != '' and endDate != '':
+                startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}' AND category='{category}'"
+            elif startDate == '' and endDate != '':
+                endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date < '{endDate}' AND category='{category}'"
+            elif startDate != '' and endDate == '':
+                startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
+                query = f"SELECT * FROM transactions WHERE date > '{startDate}' AND category='{category}'"
+            else:
+                query = f"SELECT * FROM transactions WHERE category='{category}'"
+
+            cursor.execute(query)
+
+            result = cursor.fetchall()
+
+            column_names = [i[0] for i in cursor.description]
+            fileName = f'Report_{category}_{random.randint(1,999999)}.csv'
+            fp = open(fileName, 'w')
+            myFile = csv.writer(fp, lineterminator = '\n') #use lineterminator for windows
+            myFile.writerow(column_names)
+            myFile.writerows(result)
+            fp.close()
+
+            connector.close()
+            self.categoryDateValidLabel.configure(text=f"Report Generated.\n Saved as {fileName}", text_color="#0f0")
+
 
 class App(ctk.CTk):
     def __init__(self):
