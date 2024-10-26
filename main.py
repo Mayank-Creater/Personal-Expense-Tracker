@@ -197,56 +197,40 @@ class DashboardFrame(ctk.CTkFrame):
         self.titleTop = ctk.CTkLabel(self.topFrame, text='Our services', font=BOLD_FONT, text_color=WHITE)
         self.titleTop.grid(row=0, column=0, padx=10, pady=10, sticky='w')
         
-        self.btnFrame1 = ctk.CTkFrame(self.topFrame, fg_color='#f19882', width=160, height=200, corner_radius=16)
+        self.btnFrame1 = ctk.CTkFrame(self.topFrame, fg_color='#f19882', height=200, corner_radius=16)
         self.btnFrame1.grid(row=1, column=0, padx=(10,0), pady=10)
  
         self.btnIcon1 = ctk.CTkLabel(self.btnFrame1,
                                         text='', 
-                                        image=ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/expense_black.png')), size=(50, 50)), 
+                                        image=ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/transaction_black.png')), size=(50, 50)), 
                                         corner_radius=16)
         self.btnIcon1.grid(row=0, column=0, padx=30, pady=(30,20))
 
         self.btnText1 = ctk.CTkLabel(self.btnFrame1, 
-                                       text="Expense\nAnalysis", 
+                                       text="View All\nTransactions", 
                                        text_color='#fff', 
                                        font=REGULAR_FONT)
         self.btnText1.grid(row=2, column=0, padx=20, pady=20)
 
 
-        self.btnFrame2 = ctk.CTkFrame(self.topFrame, fg_color='#d82746', width=160, corner_radius=16)
-        self.btnFrame2.grid(row=1, column=1, padx=(0,0), pady=10)
+        self.btnFrame2 = ctk.CTkFrame(self.topFrame, fg_color='#d82746', corner_radius=16)
+        self.btnFrame2.grid(row=1, column=1, padx=(10,0), pady=10)
 
         self.btnIcon2 = ctk.CTkLabel(self.btnFrame2,
                                         text='', 
-                                        image=ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/budget_black.png')), size=(50, 50)), 
+                                        image=ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/report_black.png')), size=(50, 50)), 
                                         corner_radius=16)
         self.btnIcon2.grid(row=0, column=0, padx=30, pady=(30,20))
 
         self.btnText2 = ctk.CTkLabel(self.btnFrame2, 
-                                       text="Budget\nPlanning", 
+                                       text="Generate\nReport", 
                                        text_color='#fff', 
                                        font=REGULAR_FONT)
         self.btnText2.grid(row=2, column=0, padx=20, pady=20)
 
-
-        self.btnFrame3 = ctk.CTkFrame(self.topFrame, fg_color='#a14231', width=160, corner_radius=16)
-        self.btnFrame3.grid(row=1, column=2, padx=(5,10), pady=10)
-
-        self.btnIcon3 = ctk.CTkLabel(self.btnFrame3,
-                                        text='', 
-                                        image=ctk.CTkImage(Image.open(os.path.join(baseDir, 'images/reminder_black.png')), size=(50, 50)), 
-                                        corner_radius=16)
-        self.btnIcon3.grid(row=0, column=0, padx=30, pady=(30,20))
-
-        self.btnText3 = ctk.CTkLabel(self.btnFrame3, 
-                                       text="Monthly\nReminder", 
-                                       text_color='#fff', 
-                                       font=REGULAR_FONT)
-        self.btnText3.grid(row=2, column=0, padx=20, pady=20)
-
-        self.btnFrame1.bind('<Button-1>', lambda x:print('Pressed btnFrame1'))
-        self.btnFrame2.bind('<Button-1>', lambda x:print('Pressed btnFrame2'))
-        self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
+        self.btnFrame1.bind('<Button-1>', self.transaction_btn_callback)
+        self.btnFrame2.bind('<Button-1>', self.report_btn_callback)
+        # self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
 
         self.connector = App.create_connection(self)
         self.cursor = self.connector.cursor()
@@ -280,6 +264,14 @@ class DashboardFrame(ctk.CTkFrame):
             date = i[0].strftime("%d/%m/%Y")
             self.data = ctk.CTkLabel(self.recentIncomeFrame, text=f"{date} \t {i[1]} \t {i[2]}", font=REGULAR_FONT, text_color=WHITE)
             self.data.grid(row=pos+1, column=0, padx=5, pady=5, columnspan=2, sticky='w')
+
+    def transaction_btn_callback(self, event=None):
+        self.nav = NavBarFrame(self.master)
+        self.nav.transaction_btn_callback()
+
+    def report_btn_callback(self, event=None):
+        self.nav = NavBarFrame(self.master)
+        self.nav.report_btn_callback()
 
     def add_transaction_btn_callback(self):
         self.master.show_frame(AddTransactionFrame)
@@ -414,7 +406,7 @@ class TransactionFrame(ctk.CTkFrame):
         self.expenseTitle = ctk.CTkLabel(self, text="All Expense", font=BOLD_FONT, text_color=WHITE)
         self.expenseTitle.grid(row=0, column=0, padx=20, pady=20, sticky='w')
 
-        self.expenseFrame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a")
+        self.expenseFrame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a", label_text="Date \t\t Amount \t\t Category \t\t Description", label_font=BOLD_FONT, label_anchor="w")
         self.expenseFrame.grid(row=1, column=0, padx=20, pady=20, sticky='we')
 
         self.incomeTitle = ctk.CTkLabel(self, text="All Income", font=BOLD_FONT, text_color=WHITE)
@@ -432,8 +424,8 @@ class TransactionFrame(ctk.CTkFrame):
 
             for pos, i in enumerate(expense):
                 date = i[0].strftime("%d/%m/%Y")
-                self.data = ctk.CTkLabel(self.expenseFrame, text=f"{date} \t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
-                self.data.grid(row=pos, column=0, padx=5, pady=5, columnspan=4, sticky='w')
+                self.data = ctk.CTkLabel(self.expenseFrame, text=f"{date} \t\t {i[1]} \t\t {i[2]} \t\t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
+                self.data.grid(row=pos, column=0, columnspan=4, sticky='w')
 
             query = f"SELECT date, amount, category, description FROM transactions WHERE type='income' AND user_id={userId} ORDER BY date DESC"
             cursor.execute(query)
@@ -441,7 +433,7 @@ class TransactionFrame(ctk.CTkFrame):
 
             for pos, i in enumerate(income):
                 date = i[0].strftime("%d/%m/%Y")
-                self.data = ctk.CTkLabel(self.incomeFrame, text=f"{date} \t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
+                self.data = ctk.CTkLabel(self.incomeFrame, text=f"{date} \t\t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
                 self.data.grid(row=pos, column=0, padx=5, pady=5, columnspan=4, sticky='w')
 
 
