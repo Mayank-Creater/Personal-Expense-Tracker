@@ -284,7 +284,6 @@ class DashboardFrame(ctk.CTkFrame):
     def add_transaction_btn_callback(self):
         self.master.show_frame(AddTransactionFrame)
 
-
 class AddTransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -399,8 +398,6 @@ class AddTransactionFrame(ctk.CTkFrame):
         except:
             self.addErrorLabel.configure(text='Data Invalid.\nPlease enter correct data.', text_color="#f00")
 
-
-
 # class InvoiceFrame(ctk.CTkFrame):
 #     def __init__(self, master):
 #         super().__init__(master)
@@ -411,9 +408,42 @@ class AddTransactionFrame(ctk.CTkFrame):
 class TransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
+        self.configure(fg_color="transparent")
+        self.grid_columnconfigure(0, weight=1)
 
-        self.label = ctk.CTkLabel(self, text='Transaction')
-        self.label.grid(row=0, column=0, padx=20, pady=20)
+        self.expenseTitle = ctk.CTkLabel(self, text="All Expense", font=BOLD_FONT, text_color=WHITE)
+        self.expenseTitle.grid(row=0, column=0, padx=20, pady=20, sticky='w')
+
+        self.expenseFrame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a")
+        self.expenseFrame.grid(row=1, column=0, padx=20, pady=20, sticky='we')
+
+        self.incomeTitle = ctk.CTkLabel(self, text="All Income", font=BOLD_FONT, text_color=WHITE)
+        self.incomeTitle.grid(row=2, column=0, padx=20, pady=20, sticky='w')
+
+        self.incomeFrame = ctk.CTkScrollableFrame(self, fg_color="#0a0a0a")
+        self.incomeFrame.grid(row=3, column=0, padx=20, pady=20, sticky='we')
+
+        connector = App.create_connection(self)
+        if connector:
+            cursor = connector.cursor()
+            query = f"SELECT date, amount, category, description FROM transactions WHERE type='expense' AND user_id={userId} ORDER BY date DESC"
+            cursor.execute(query)
+            expense = cursor.fetchall()
+
+            for pos, i in enumerate(expense):
+                date = i[0].strftime("%d/%m/%Y")
+                self.data = ctk.CTkLabel(self.expenseFrame, text=f"{date} \t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
+                self.data.grid(row=pos, column=0, padx=5, pady=5, columnspan=4, sticky='w')
+
+            query = f"SELECT date, amount, category, description FROM transactions WHERE type='income' AND user_id={userId} ORDER BY date DESC"
+            cursor.execute(query)
+            income = cursor.fetchall()
+
+            for pos, i in enumerate(income):
+                date = i[0].strftime("%d/%m/%Y")
+                self.data = ctk.CTkLabel(self.incomeFrame, text=f"{date} \t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
+                self.data.grid(row=pos, column=0, padx=5, pady=5, columnspan=4, sticky='w')
+
 
 class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -521,15 +551,15 @@ class ReportFrame(ctk.CTkFrame):
             if startDate != '' and endDate != '':
                 startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
                 endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}'"
+                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}' AND user_id={userId}"
             elif startDate == '' and endDate != '':
                 endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date < '{endDate}'"
+                query = f"SELECT * FROM transactions WHERE date < '{endDate}' AND user_id={userId}"
             elif startDate != '' and endDate == '':
                 startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date > '{startDate}'"
+                query = f"SELECT * FROM transactions WHERE date > '{startDate}' AND user_id={userId}"
             else:
-                query = "SELECT * FROM transactions"
+                query = f"SELECT * FROM transactions WHERE user_id={userId}"
 
             cursor.execute(query)
 
@@ -556,15 +586,15 @@ class ReportFrame(ctk.CTkFrame):
             if startDate != '' and endDate != '':
                 startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
                 endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}' AND category='{category}'"
+                query = f"SELECT * FROM transactions WHERE date BETWEEN '{startDate}' AND '{endDate}' AND category='{category}' AND user_id={userId}"
             elif startDate == '' and endDate != '':
                 endDate = datetime.datetime.strptime(endDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date < '{endDate}' AND category='{category}'"
+                query = f"SELECT * FROM transactions WHERE date < '{endDate}' AND category='{category}' AND user_id={userId}"
             elif startDate != '' and endDate == '':
                 startDate = datetime.datetime.strptime(startDate, '%d-%m-%Y').strftime("%Y-%m-%d")
-                query = f"SELECT * FROM transactions WHERE date > '{startDate}' AND category='{category}'"
+                query = f"SELECT * FROM transactions WHERE date > '{startDate}' AND category='{category}' AND user_id={userId}"
             else:
-                query = f"SELECT * FROM transactions WHERE category='{category}'"
+                query = f"SELECT * FROM transactions WHERE category='{category}' AND user_id={userId}"
 
             cursor.execute(query)
 
