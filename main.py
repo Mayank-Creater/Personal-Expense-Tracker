@@ -1,3 +1,4 @@
+#importing required modules
 import customtkinter as ctk
 from PIL import Image, ImageDraw
 from mysql.connector import Error, connection
@@ -6,6 +7,7 @@ import datetime
 import csv
 import random
 
+#setting constants for future use
 BLACK = "#0F0F0F"
 GREY = "#262625"
 GREY_TEXT = "#A9A9A9"
@@ -19,7 +21,7 @@ REGULAR_FONT = ('Gilroy-Regular', 20)
 
 userId = None
 
-baseDir = os.getcwd()
+baseDir = os.getcwd()       #baseDir of the current executing folder
 
 class NavBarFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -80,19 +82,6 @@ class NavBarFrame(ctk.CTkFrame):
 
         self.managementLabel = ctk.CTkLabel(self, text="Management", text_color="#fff", font=MEDIUM_FONT)
         self.managementLabel.grid(row=3, column=0, padx=10, sticky='w')
-        # self.invoiceBtn = ctk.CTkButton(self, text="Invoices", 
-        #                             width=self.btnWidth, 
-        #                             height=self.btnHeight, 
-        #                             image=self.invoiceIcon, 
-        #                             anchor='w', 
-        #                             corner_radius=8, 
-        #                             fg_color='transparent', 
-        #                             text_color=GREY_TEXT,
-        #                             hover_color=ORANGE_HOVER,
-        #                             font=REGULAR_FONT,
-        #                             command=self.invoice_btn_callback)
-
-        # self.invoiceBtn.grid(row=4, column=0, padx=(30,10), pady=(4,2))
 
         self.transactionBtn = ctk.CTkButton(self, text="Transactions", 
                                     width=self.btnWidth, 
@@ -137,6 +126,7 @@ class NavBarFrame(ctk.CTkFrame):
                                         command=self.signout_btn_callback)
         self.signoutBtn.grid(row=9, column=0, pady=(0,10))
 
+    # function to add rounded corners to image
     def add_corners(self, image_path, radius=80):
         image = Image.open(image_path).convert("RGBA")
         # Create a mask 
@@ -150,9 +140,9 @@ class NavBarFrame(ctk.CTkFrame):
 
         return rounded_image
 
+    # change the color values of navbar buttons to default
     def change_to_default(self):
         self.dashboardBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
-        # self.invoiceBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
         self.transactionBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
         self.reportBtn.configure(fg_color='transparent', text_color=GREY_TEXT)
 
@@ -161,11 +151,6 @@ class NavBarFrame(ctk.CTkFrame):
         self.master.show_frame(DashboardFrame)
         self.change_to_default()
         self.dashboardBtn.configure(fg_color=ORANGE, text_color=WHITE)
-
-    # def invoice_btn_callback(self):
-    #     self.master.show_frame(InvoiceFrame)
-    #     self.change_to_default()
-    #     self.invoiceBtn.configure(fg_color=ORANGE, text_color=WHITE)
 
     def transaction_btn_callback(self):
         self.master.show_frame(TransactionFrame)
@@ -230,7 +215,6 @@ class DashboardFrame(ctk.CTkFrame):
 
         self.btnFrame1.bind('<Button-1>', self.transaction_btn_callback)
         self.btnFrame2.bind('<Button-1>', self.report_btn_callback)
-        # self.btnFrame3.bind('<Button-1>', lambda x:print('Pressed btnFrame3'))
 
         self.connector = App.create_connection(self)
         self.cursor = self.connector.cursor()
@@ -390,13 +374,6 @@ class AddTransactionFrame(ctk.CTkFrame):
         except:
             self.addErrorLabel.configure(text='Data Invalid.\nPlease enter correct data.', text_color="#f00")
 
-# class InvoiceFrame(ctk.CTkFrame):
-#     def __init__(self, master):
-#         super().__init__(master)
-
-#         self.label = ctk.CTkLabel(self, text='Invoice')
-#         self.label.grid(row=0, column=0, padx=20, pady=20)
-
 class TransactionFrame(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master)
@@ -433,9 +410,8 @@ class TransactionFrame(ctk.CTkFrame):
 
             for pos, i in enumerate(income):
                 date = i[0].strftime("%d/%m/%Y")
-                self.data = ctk.CTkLabel(self.incomeFrame, text=f"{date} \t\t {i[1]} \t {i[2]} \t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
+                self.data = ctk.CTkLabel(self.incomeFrame, text=f"{date} \t\t {i[1]} \t\t {i[2]} \t\t {i[3]}", font=REGULAR_FONT, text_color=WHITE)
                 self.data.grid(row=pos, column=0, padx=5, pady=5, columnspan=4, sticky='w')
-
 
 class ReportFrame(ctk.CTkFrame):
     def __init__(self, master):
@@ -603,14 +579,12 @@ class ReportFrame(ctk.CTkFrame):
             connector.close()
             self.categoryDateValidLabel.configure(text=f"Report Generated.\n Saved as {fileName}", text_color="#0f0")
 
-
 class App(ctk.CTk):
     def __init__(self):
         super().__init__()
 
         self.geometry("1200x700+25+0")
         self.title("Personal Expense Tracker")
-        # self.resizable(False, False)
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
 
@@ -645,12 +619,10 @@ class App(ctk.CTk):
             print(f'Error: {e}')
             return None
 
-
 class LoginPage(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # self.geometry("400x400")
         self.title("Login Page")
 
         self.grid_columnconfigure(0, weight=1)
@@ -672,13 +644,9 @@ class LoginPage(ctk.CTk):
         self.invalidLabel = ctk.CTkLabel(self, text='', text_color='#f00')
         self.invalidLabel.grid(row=3, column=0, padx=10, pady=10, columnspan=2)
 
-        # self.userEntry.insert(0, 'admin')
-        # self.passEntry.insert(0, 'admin')
 
     def validate_login(self, event=None):
         global userId
-        # self.destroy()
-        # App().mainloop()
         username = self.userEntry.get()
         password = self.passEntry.get()
         connector = App.create_connection(self)
@@ -696,7 +664,6 @@ class LoginPage(ctk.CTk):
                 App().mainloop()
             else:
                 self.invalidLabel.configure(text='Invalid Credentials')
-
 
 if __name__=="__main__":
     app = LoginPage()
